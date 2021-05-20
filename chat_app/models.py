@@ -9,32 +9,15 @@ class Profile(models.Model):
        Add other fields...
     '''
     is_online = models.BooleanField(default = False)
-    
-    class Meta:
-        verbose_name = '1. Profile'
-
-# class UserChat(models.Model):
-#     user = models.OneToOneField(User,on_delete=models.CASCADE,related_name = 'user_chat')
-#     chat_provide = models.IntegerField(default = 25)
-#     price = models.CharField(default = '5(USD)',max_length=25)
-#     reply_rate = models.IntegerField(default = 0)
-    
-#     class Meta:
-#         verbose_name = '2. Chat'
-    
-#     def __str__(self):
-#         return '%s(%s)' %(self.user.username,self.chat_provide)
 
 class ChatSession(models.Model):
     user1 = models.ForeignKey(User,on_delete=models.CASCADE,related_name='user1_name')
     user2 = models.ForeignKey(User,on_delete=models.CASCADE,related_name='user2_name')
-    # user1_remain_chat = models.IntegerField(help_text='user1\'s remain chats')
-    # user2_remain_chat = models.IntegerField(help_text='user2\'s remain chats')
     updated_on = models.DateTimeField(auto_now = True)
     
     class Meta:
         unique_together = (("user1", "user2"))
-        verbose_name = '2. Chat Message'
+        verbose_name = 'Chat Message'
         
     def __str__(self):
         return '%s_%s' %(self.user1.username,self.user2.username)
@@ -66,7 +49,7 @@ class ChatMessage(models.Model):
 
     def save(self,*args,**kwargs):
         super().save(*args,**kwargs)
-        ChatSession.objects.get(id = self.chat_session.id).save()
+        ChatSession.objects.get(id = self.chat_session.id).save()   # Update ChatSession TimeStampe
 
     @staticmethod
     def count_overall_unread_msg(user_id):
