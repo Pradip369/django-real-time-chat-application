@@ -2,13 +2,6 @@ from django.contrib import admin
 from .models import *
 from django_admin_inline_paginator.admin import TabularInlinePaginated
 
-# @admin.register(UserChat)
-# class UserChatAdmin(admin.ModelAdmin):
-#     list_display= ["id","user","chat_provide","price","reply_rate"]
-#     search_fields=["id","user__username"]
-#     list_per_page = 10
-#     list_display_links = list_display
-
 class ChatMessageInline(TabularInlinePaginated):
     model = ChatMessage
     can_delete = False
