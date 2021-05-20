@@ -48,8 +48,7 @@ INSTALLED_APPS += [
 
 # ================================ External Applications ==================================
 INSTALLED_APPS += [
-    'rest_framework',
-    'corsheaders',
+    'rest_framework',    # Only for login purpose
     'django_admin_inline_paginator',
 ]
 
