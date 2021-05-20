@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>all_friends</title>
+</head>
+<body>
+        <center>
+            <h1>Suggested Friend List</h1>
+            <hr/>
+        </center>
+        <br>
+
+        {% if messages %}
+            {% for message in messages%}
+                <h3 style="background-color: rgb(203, 231, 160); padding: 5px; border: 2px solid rgb(55, 255, 5);">{{message}}<a href="{% url 'friend_list' %}" style="text-decoration: none;"> <strong>  🔰See My Chat List🔰</strong></a></h3>
+            {% endfor %}
+        {% endif %}
+
+        <div style="height: 50%; width: 50%; background-color: paleturquoise;">
+            {% for user in all_user %}
+                <hr/>
+            <h3 style="margin-left: 3px;">🧑 {{user.username| title}}
+                <small><button style="background-color: rgb(164, 114, 211); margin-left: 8px;"><a href="{% url 'create_friend' %}?id={{user.id}}" style="text-decoration: none; color: white;"><strong> Add Friend</strong></a></button></small>
+            </h3>
+            {% endfor %}
+            <hr />
+        </div>
+        <p>No more users....</p>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{% extends './base.html' %}
+
+{% block content %}
+    <hr/>
+    <center><h1>💬Chat App💬</h1></center>
+    <hr/>
+    <br>
+    <h2>
+        <b>
+            {% if request.user.is_authenticated %}
+            Hello {{request.user.username}} : 
+            <a href="{% url 'friend_list' %}" style="text-decoration: none; color: rgb(255, 95, 2);"> My Chat List</a> 
+            <span id = 'overall_unread' class="w3-badge w3-large w3-green w3-margin-right">{{unread_msg}}</span>
+            {% else %}
+            Login Required : <a href="/api_auth/login/">Login</a>{% endif %}
+        </b>
+
+        <br/>
+        <a href="{% url 'create_friend' %}" style="text-decoration: none; color: rgb(255, 188, 2);"><h4>🔀Add Friend in chat list🔀</h4></a>
+    </h2>
+    
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        PersonalSocket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.msg_type === 'MESSAGE_COUNTER') {
+                    document.getElementById("overall_unread").textContent = data.overall_unread_msg
+                }
+            }
+    </script>
+
+{% endblock %}

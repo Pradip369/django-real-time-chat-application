@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+
+
+    {% block content %}
+    {% endblock %}
+
+    <span hidden id='personal_room'>{{request.user.id}}</span>
+
+    <script>
+            const PersonalroomName = JSON.parse(document.getElementById('personal_room').textContent);
+            const PersonalSocket = new WebSocket(
+                'ws://' + window.location.host + '/ws/personal_chat/' + PersonalroomName + '/'
+            );
+            const set_online = () => {
+                setTimeout(() => {
+                    PersonalSocket.send(JSON.stringify({
+                        'msg_type': 'WENT_ONLINE',
+                        'user_id': '{{request.user.id}}'
+                    }));
+                }, 1000)
+            }
+
+            document.addEventListener("visibilitychange", event => {
+                    if (document.visibilityState == "visible") {
+                        if (PersonalSocket.readyState === WebSocket.OPEN){
+                            PersonalSocket.send(JSON.stringify({
+                                'msg_type': 'WENT_ONLINE',
+                                'user_id': '{{request.user.id}}'
+                            }));
+                        }
+                    }
+                    else{
+                        if(PersonalSocket.readyState === WebSocket.OPEN){
+                                    PersonalSocket.send(JSON.stringify({
+                                        'msg_type': 'WENT_OFFLINE',
+                                        'user_id': '{{request.user.id}}'
+                                    }));
+                            }
+                        }
+                }
+            );
+
+            PersonalSocket.onopen = set_online();
+    </script>
+
+    {% block script %}
+    {% endblock %}
+
+</body>
+</html>

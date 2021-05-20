@@ -1,0 +1,41 @@
+{% extends './base.html' %}
+
+{% block content %}
+    <center><h1>My ChatList</h1></center>
+    <hr/>
+
+    <div style="height: 50%; width: 50%; margin-left: 15px; background-color: paleturquoise;">
+    {% for user in user_list %}
+        <hr />
+        <div id = {{user.user_name}}>
+            <a href="{% url 'start_chat' user.room_name %}" style="text-decoration: none; color: rgb(250, 73, 111);">
+            <h3 style="margin-left: 20px;">🧑 | {{user.user_name | title}}<span id="{{user.user_id}}" class="w3-badge w3-large w3-green w3-right w3-margin-right">{{user.un_read_msg_count}}</span></h3>
+            </a>
+            <small id = "status" style="color: rgb(11, 219, 73); font-weight: bold; margin-left: 50px;">{% if user.status %}Online{% endif %}</small>
+        </div>
+    {% endfor %}
+    <hr/>
+    </div>
+    <p>No more users....</p>
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        PersonalSocket.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if(data.msg_type === 'WENT_ONLINE'){
+                document.getElementById(data.user_name).querySelector('#status').textContent = 'Online'
+            }
+
+            else if(data.msg_type === 'WENT_OFFLINE'){
+                document.getElementById(data.user_name).querySelector('#status').textContent = ''
+            }
+            else if(data.msg_type === 'MESSAGE_COUNTER'){
+                let val = document.getElementById(data.user_id).textContent
+                document.getElementById(data.user_id).textContent = parseInt(val) + 1
+            }
+        }
+    </script>
+
+{% endblock %}
