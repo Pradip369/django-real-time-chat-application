@@ -33,7 +33,7 @@ class ChatSession(models.Model):
     @staticmethod
     def create_if_not_exists(user1,user2):
         res = ChatSession.chat_session_exists(user1,user2)
-        return False if res else ChatSession.objects.create(user1=user1,user2=user2,user1_remain_chat = 20,user2_remain_chat = 20)
+        return False if res else ChatSession.objects.create(user1=user1,user2=user2)
     
 class ChatMessage(models.Model):
     id = models.UUIDField(primary_key = True,editable = False)
