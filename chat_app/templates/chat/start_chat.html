@@ -97,7 +97,7 @@
 
     const add_element = (data,box_color) => {        
         const user = data.user === '{{request.user.username}}' ? "You" : data.user
-        const error_msg = data.error_message === 'MESSAGE_OUT_OF_LENGTH' ? "<br/>" + "Error:Text size must be less then 1000 char." + "<br/>" + " • This Message not sent.." :false
+        const error_msg = data.error_message === 'MESSAGE_OUT_OF_LENGTH' ? "<br/>" + "Error:Msg size must be less then 10 char." + "<br/>" + " • This Message not sent.." :false
         const add_read = data.user === '{{request.user.username}}' ? '<small id="as_read" style="padding-left: 95%; color: #bbb8b8; font-weight: bold;">✔✔</small>':''
         ele = `<p id=${data.msg_id} class="chat_box" style = "background-color : ${box_color};"><small><b>${user}</b> - ${data.timestampe}</small><br/><span style="color: #ffffff; font-weight: bold;""> • ${data.message}<small><br/>${error_msg ? error_msg :add_read }</small></span><br/></p>`
         document.querySelector('#chat-log').innerHTML += ele
