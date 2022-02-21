@@ -15,29 +15,29 @@ def home(request):
     return render(request, 'chat/home.html',{"unread_msg" : unread_msg})
 
 @login_required
-def create_friend(request):
-    user_1 = request.user
+def add_friend(request):
+    user = request.user
     if request.GET.get('id'):
-        user2_id = request.GET.get('id')
-        user_2 = get_object_or_404(User,id = user2_id)
-        get_create = ChatSession.create_if_not_exists(user_1,user_2)
+        friend_id = request.GET.get('id')
+        friend = get_object_or_404(User,id = friend_id)
+        get_create = ChatSession.create_if_not_exists(user, friend)
         if get_create:
-            messages.add_message(request,messages.SUCCESS,f'{user_2.username} successfully added in your chat list!!')
+            messages.add_message(request,messages.SUCCESS,f'{friend.username} successfully added in your chat list!!')
         else:
-            messages.add_message(request,messages.SUCCESS,f'{user_2.username} already added in your chat list!!')
+            messages.add_message(request,messages.SUCCESS,f'{friend.username} already added in your chat list!!')
         return HttpResponseRedirect('/create_friend')
     else:
-        user_all_friends = ChatSession.objects.filter(Q(user1 = user_1) | Q(user2 = user_1))
+        user_all_friends = ChatSession.objects.filter(Q(user1 = user) | Q(user2 = friend))
         user_list = []
         for ch_session in user_all_friends:
-            user_list.append(ch_session.user1.id)
-            user_list.append(ch_session.user2.id)
-        all_user = User.objects.exclude(Q(username=user_1.username)|Q(id__in = list(set(user_list))))
+            user_list.append(ch_session.user.id)
+            user_list.append(ch_session.friend.id)
+        all_user = User.objects.exclude(Q(username=user.username)|Q(id__in = list(set(user_list))))
     return render(request, 'chat/create_friend.html',{'all_user' : all_user})
 
 
 @login_required
-def friend_list(request):
+def list_friends(request):
     user_inst = request.user
     user_all_friends = ChatSession.objects.filter(Q(user1 = user_inst) | Q(user2 = user_inst)).select_related('user1','user2').order_by('-updated_on')
     all_friends = []
