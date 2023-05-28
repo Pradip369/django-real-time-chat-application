@@ -20,14 +20,6 @@
             const PersonalSocket = new WebSocket(
                 'ws://' + window.location.host + '/ws/personal_chat/' + PersonalroomName + '/'
             );
-            const set_online = () => {
-                setTimeout(() => {
-                    PersonalSocket.send(JSON.stringify({
-                        'msg_type': 'WENT_ONLINE',
-                        'user_id': '{{request.user.id}}'
-                    }));
-                }, 1000)
-            }
 
             document.addEventListener("visibilitychange", event => {
                     if (document.visibilityState == "visible") {
@@ -48,7 +40,14 @@
                         }
                 }
             );
-
+            const set_online = () => {
+                setTimeout(() => {
+                    PersonalSocket.send(JSON.stringify({
+                        'msg_type': 'WENT_ONLINE',
+                        'user_id': '{{request.user.id}}'
+                    }));
+                }, 1000)
+            }
             PersonalSocket.onopen = set_online();
     </script>
 

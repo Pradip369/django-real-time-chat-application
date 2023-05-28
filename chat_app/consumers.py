@@ -1,19 +1,17 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 from datetime import datetime
-from chat_app.models import ChatSession, ChatMessage
 from channels.db import database_sync_to_async
 import uuid
-from .models import Profile
-from django.db.models import Q
 
 
-MESSAGE_MAX_LENGTH = 10
+MESSAGE_MAX_LENGTH = 20
 
 MESSAGE_ERROR_TYPE = {
     "MESSAGE_OUT_OF_LENGTH": 'MESSAGE_OUT_OF_LENGTH',
     "UN_AUTHENTICATED": 'UN_AUTHENTICATED',
     "INVALID_MESSAGE": 'INVALID_MESSAGE',
+    "INVALID_USER": 'INVALID_USER',
 }
 
 MESSAGE_TYPE = {
@@ -28,6 +26,9 @@ MESSAGE_TYPE = {
     "ALL_MESSAGE_READ": 'ALL_MESSAGE_READ',
     "ERROR_OCCURED": 'ERROR_OCCURED'
 }
+
+from .send_message import *
+from .database_sync import *
 
 class PersonalConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -79,47 +80,26 @@ class PersonalConsumer(AsyncWebsocketConsumer):
                 )
             
     async def user_online(self,event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['WENT_ONLINE'],
-            'user_name' : event['user_name']
-        }))
+        await send_user_online(self,event)
         
     async def message_counter(self, event):
         overall_unread_msg = await self.count_unread_overall_msg(event['current_user_id'])
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['MESSAGE_COUNTER'],
-            'user_id': event['user_id'],
-            'overall_unread_msg' : overall_unread_msg
-        }))
+        await send_message_counter(self, event,overall_unread_msg)
 
     async def user_offline(self,event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['WENT_OFFLINE'],
-            'user_name' : event['user_name']
-        }))
-    
+        await send_user_offline(self,event)
+
     @database_sync_to_async
     def set_online(self,user_id):
-        Profile.objects.filter(user__id = user_id).update(is_online = True)
-        user_all_friends = ChatSession.objects.filter(Q(user1 = self.user) | Q(user2 = self.user))
-        user_id = []
-        for ch_session in user_all_friends:
-            user_id.append(ch_session.user2.id) if self.user.username == ch_session.user1.username else user_id.append(ch_session.user1.id)
-        return user_id
+        return db_set_online(self,user_id)
 
     @database_sync_to_async
     def set_offline(self,user_id):
-        Profile.objects.filter(user__id = user_id).update(is_online = False)
-        user_all_friends = ChatSession.objects.filter(Q(user1 = self.user) | Q(user2 = self.user))
-        user_id = []
-        for ch_session in user_all_friends:
-            user_id.append(ch_session.user2.id) if self.user.username == ch_session.user1.username else user_id.append(ch_session.user1.id)
-        return user_id
+        return db_set_offline(self,user_id)
 
     @database_sync_to_async
     def count_unread_overall_msg(self,user_id):
-        return ChatMessage.count_overall_unread_msg(user_id)
-    
+        return db_count_unread_overall_msg(self,user_id)
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -137,11 +117,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.accept()
         else:
             await self.accept()
-            await self.send(text_data=json.dumps({
-                "msg_type": MESSAGE_TYPE['ERROR_OCCURED'],
-                "error_message": MESSAGE_ERROR_TYPE["UN_AUTHENTICATED"],
-                "user": self.user.username,
-            }))
+            await send_auth_error(self)
             await self.close(code=4001)
 
     async def disconnect(self, code):
@@ -223,59 +199,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     }
                 )
 
-    # Receive message from room group
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['TEXT_MESSAGE'],
-            'message': event['message'],
-            'user': event['user'],
-            'timestampe': str(datetime.now()),
-            'msg_id' : event["msg_id"]
-        }))
+        await send_chat_message(self,event)
 
     async def msg_as_read(self,event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['MESSAGE_READ'],
-            'msg_id': event['msg_id'],
-            'user' : event['user']
-        }))
+        await send_msg_as_read(self,event)
 
     async def all_msg_read(self,event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['ALL_MESSAGE_READ'],
-            'user' : event['user']
-        }))
+        await send_all_msg_read(self,event)
 
     async def user_is_typing(self,event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['IS_TYPING'],
-            'user' : event['user']
-        }))
+        await send_user_is_typing(self,event)
 
     async def user_not_typing(self,event):
-        await self.send(text_data=json.dumps({
-            'msg_type': MESSAGE_TYPE['NOT_TYPING'],
-            'user' : event['user']
-        }))
+        await send_user_not_typing(self,event)
+
+    async def invalid_user(self,event):
+        await send_invalid_user(self,event)
 
     @database_sync_to_async
     def save_text_message(self,msg_id,message):
-        session_id = self.room_name[5:]
-        session_inst = ChatSession.objects.select_related('user1', 'user2').get(id=session_id)
-        message_json = {
-            "msg": message,
-            "read": False,
-            "timestamp": str(datetime.now()),
-            session_inst.user1.username: False,
-            session_inst.user2.username: False
-        }
-        ChatMessage.objects.create(id = msg_id,chat_session=session_inst, user=self.user, message_detail=message_json)
-        return session_inst.user2.id if self.user == session_inst.user1 else session_inst.user1.id
+        return db_save_text_message(self,msg_id,message)
     
     @database_sync_to_async
     def msg_read(self,msg_id):
-        return ChatMessage.meassage_read_true(msg_id)
+        return db_msg_read(self,msg_id)
 
     @database_sync_to_async
     def read_all_msg(self,room_id,user):
-        return ChatMessage.all_msg_read(room_id,user)
+        return db_read_all_msg(self,room_id,user)

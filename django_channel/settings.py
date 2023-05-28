@@ -94,9 +94,9 @@ ASGI_APPLICATION = "django_channel.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DB_NAME',
-        'USER' : 'USER_NAME',
-        'PASSWORD' : '****',
+        'NAME': 'chat_app',
+        'USER' : 'pradip',
+        'PASSWORD' : '3690',
         'HOST' : 'localhost',
         'PORT': '5432'
     }

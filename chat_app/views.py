@@ -49,10 +49,12 @@ def friend_list(request):
             "room_name" : ch_session.room_group_name,
             "un_read_msg_count" : un_read_msg_count,
             "status" : user.profile_detail.is_online,
-            "user_id" : user.id
+            "user_id" : user.id,
+            "user_rate" : user.user_chat.calculate_reply_rate[0]
         }
         all_friends.append(data)
 
+    
     return render(request, 'chat/friend_list.html', {'user_list': all_friends})
 
 @login_required

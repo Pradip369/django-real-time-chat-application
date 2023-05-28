@@ -58,7 +58,7 @@
             <p class="chat_box" id="{{msg.id}}">
                 <small> <b class="check_user">{{msg.user.username}}</b> - {{msg.message_detail.timestamp | convert_date | date:"M d'Y f"}}</small>
                 <br/>
-                <span style="padding: 7px; color: #ffffff; font-weight: bold;"> • {{msg.message_detail.msg}}</span>
+                <span style="padding: 7px; color: #ffffff; font-weight: bold;"> • {{msg.decript_chat}}</span>
                 <br/>
                 {% if msg.user == request.user  %}
                     <small id = "as_read" style="padding-left: 95%;{% if msg.message_detail.read %}color: rgb(8, 255, 8);{% else %}color: #bbb8b8 {% endif %}font-weight: bold;">✔✔</small>
@@ -143,6 +143,14 @@
             }
             else if(data.error_message === 'UN_AUTHENTICATED'){
                alert("You are not authenticated user!!!Login Again..")
+            }
+            else if(data.error_message === 'INVALID_USER'){
+                if('{{request.user.username}}' === data.user){
+                    alert("You are not a valid user for this chat session!!!")
+                }
+                else{
+                    alert("Something went wrong from your sender!!!")
+                }
             }
         }
         else if(data.msg_type === 'TEXT_MESSAGE'){

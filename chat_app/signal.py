@@ -1,6 +1,6 @@
 from django.dispatch.dispatcher import receiver
 from django.db.models.signals import post_save
-from .models import ChatSession,ChatMessage,Profile
+from .models import ChatSession,ChatMessage,Profile,UserChat
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
@@ -13,11 +13,6 @@ def sender_receiver_no_same(sender,instance,created,**kwargs):
 @receiver(post_save,sender=User)
 def at_ending_save(sender,instance,created,**kwargs):
     if created:
-        # UserChat.objects.create(user = instance)
         Profile.objects.create(user = instance)
-
-@receiver(post_save,sender=ChatMessage)
-def user_must_sender_or_receiver(sender,instance,created,**kwargs):
-    if created:
-        if instance.user != instance.chat_session.user1 and instance.user != instance.chat_session.user2:
-            raise ValidationError("Invalid sender!!",code='Invalid')
+        rm_reply = {"room_ids" : []}
+        UserChat.objects.create(user = instance,remain_reply = rm_reply)
